@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: obras_postgres
+    environment:
+      POSTGRES_DB: obras_publicas
+      POSTGRES_USER: obras_user
+      POSTGRES_PASSWORD: obras_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obras_user -d obras_publicas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: obras_etl
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: obras_publicas
+      DB_USER: obras_user
+      DB_PASSWORD: obras_pass
+      API_BASE_URL: https://api.obrasgov.gestao.gov.br/obrasgov/api
+      API_TIMEOUT: 30
+      API_MAX_RETRIES: 3
+      API_RETRY_DELAY: 1.0
+      DATA_RAW_DIR: /app/data/raw
+      DATA_PROCESSED_DIR: /app/data/processed
+      LOG_LEVEL: INFO
+    volumes:
+      - ./data:/app/data
+    working_dir: /app
+
+volumes:
+  postgres_data:
