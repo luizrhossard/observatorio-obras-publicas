@@ -1,6 +1,5 @@
 import json
 import time
-import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +16,7 @@ class ObrasGovClient:
 
     def __init__(self):
         self.base_url = config.api_base_url
+        self.projects_endpoint = config.api_projects_endpoint.strip("/")
         self.timeout = config.api_timeout
         self.max_retries = config.api_max_retries
         self.retry_delay = config.api_retry_delay
@@ -94,7 +94,7 @@ class ObrasGovClient:
             logger.warning(f"HTTP error (attempt {retry_count + 1}): {e}")
             raise
 
-        except requests.exceptions.Timeout as e:
+        except requests.exceptions.Timeout:
             if retry_count < self.max_retries:
                 delay = self.retry_delay * (2**retry_count)
                 logger.warning(f"Timeout (attempt {retry_count + 1}), waiting {delay}s")
@@ -115,11 +115,22 @@ class ObrasGovClient:
         if filters:
             params.update(filters)
 
-        return self._make_request("GET", "consultar", params=params)
+        # The ObrasGov public API commonly exposes the projects list at `/projeto-investimento`.
+        # Keep the endpoint configurable via `API_PROJECTS_ENDPOINT`.
+        try:
+            return self._make_request("GET", self.projects_endpoint, params=params)
+        except requests.exceptions.HTTPError as e:
+            response = getattr(e, "response", None)
+            if response is not None and response.status_code == 404 and self.projects_endpoint != "consultar":
+                # Backwards-compat fallback for older assumptions/docs.
+                return self._make_request("GET", "consultar", params=params)
+            raise
 
     def get_obra_by_id(self, obra_id: str) -> Dict[str, Any]:
         """Fetch single obra by ID."""
-        return self._make_request("GET", f"consultar/{obra_id}")
+        # The API generally uses `idUnico` as a filter, returning a (possibly paginated) list.
+        params = {"idUnico": obra_id, "page": 0, "size": 100}
+        return self._make_request("GET", self.projects_endpoint, params=params)
 
     def get_all_obras(self, max_pages: Optional[int] = None) -> List[Dict[str, Any]]:
         """Fetch all obras with pagination."""
@@ -130,7 +141,10 @@ class ObrasGovClient:
             logger.info(f"Fetching page {page}...")
 
             response = self.get_obras(page=page)
-            content = response.get("content", [])
+            if isinstance(response, list):
+                content = response
+            else:
+                content = response.get("content", [])
 
             if not content:
                 break
