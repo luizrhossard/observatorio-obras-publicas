@@ -5,6 +5,7 @@ Computes 8 KPIs for obras publicas portfolio analysis.
 
 import json
 import logging
+from decimal import Decimal
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -13,6 +14,19 @@ from app.config import config
 from app.database.connection import get_db_connection
 
 logger = logging.getLogger(__name__)
+
+
+def _fetchall_dict(cursor) -> List[Dict[str, Any]]:
+    columns = [column[0] for column in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    raise TypeError(f"Object of type {value.__class__.__name__} is not JSON serializable")
 
 
 def compute_kpi_status() -> List[Dict[str, Any]]:
@@ -32,7 +46,7 @@ def compute_kpi_status() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 1 (status): {len(results)} statuses")
     return results
 
@@ -56,7 +70,7 @@ def compute_kpi_by_uf() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 2 (by_uf): {len(results)} UFs")
     return results
 
@@ -81,7 +95,7 @@ def compute_kpi_valor_orgao() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 3 (valor_orgao): {len(results)} orgaos")
     return results
 
@@ -96,7 +110,7 @@ def compute_kpi_atraso_medio() -> Optional[Dict[str, Any]]:
             AVG(
                 CASE 
                     WHEN data_conclusao IS NOT NULL AND data_fim_previsto IS NOT NULL 
-                    THEN EXTRACT(DAY FROM (data_conclusao - data_fim_previsto)
+                    THEN data_conclusao - data_fim_previsto
                     ELSE NULL
                 END
             ) AS atraso_medio_dias,
@@ -140,7 +154,7 @@ def compute_kpi_evolucao_mensal() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 6 (evolucao): {len(results)} meses")
     return results
 
@@ -200,7 +214,7 @@ def compute_kpi_concentracao_municipio() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 8 (concentracao): {len(results)} municipios")
     return results
 
@@ -227,7 +241,7 @@ def compute_kpi_regiao() -> List[Dict[str, Any]]:
     db = get_db_connection()
     with db.get_cursor() as cursor:
         cursor.execute(query)
-        results = [dict(row) for row in cursor.fetchall()]
+        results = _fetchall_dict(cursor)
     logger.info(f"KPI 5 (regiao): {len(results)} regioes")
     return results
 
@@ -258,7 +272,7 @@ def save_kpis_to_file(kpis: Dict[str, Any], output_path: Path) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(kpis, f, ensure_ascii=False, indent=2)
+        json.dump(kpis, f, ensure_ascii=False, indent=2, default=_json_default)
 
     logger.info(f"KPIs saved to {output_path}")
     return output_path

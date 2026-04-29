@@ -6,7 +6,6 @@ from typing import Optional
 
 from app.config import config
 from app.utils.logger import setup_logger
-from app.database.connection import get_db_connection
 from app.database.init_db import init_database, check_database_connection
 
 

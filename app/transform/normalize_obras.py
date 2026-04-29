@@ -1,5 +1,4 @@
 import json
-import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from pathlib import Path
@@ -62,7 +61,12 @@ class ObraNormalizer:
         Returns:
             Normalized obra dictionary
         """
-        obra_id = raw_obra.get("id") or raw_obra.get("codigo") or raw_obra.get("idObra")
+        obra_id = (
+            raw_obra.get("id")
+            or raw_obra.get("codigo")
+            or raw_obra.get("idObra")
+            or raw_obra.get("idUnico")
+        )
 
         if not obra_id:
             logger.warning(f"Missing obra ID, skipping: {raw_obra}")
@@ -72,7 +76,7 @@ class ObraNormalizer:
             "obra_id": str(obra_id),
             "nome": raw_obra.get("nome", raw_obra.get("titulo", "")),
             "descricao": raw_obra.get("descricao", ""),
-            "uf": raw_obra.get("uf", raw_obra.get("siglaUf", "")),
+            "uf": raw_obra.get("uf") or raw_obra.get("Uf") or raw_obra.get("siglaUf", ""),
             "municipio": raw_obra.get("municipio", raw_obra.get("nomeMunicipio", "")),
             "orgao": raw_obra.get("orgao", raw_obra.get("nomeOrgao", "")),
             "orgao_id": raw_obra.get("orgaoId") or raw_obra.get("idOrgao"),
@@ -103,7 +107,7 @@ class ObraNormalizer:
             ),
             "fonte_recursos": raw_obra.get("fonteRecursos") or raw_obra.get("fonte"),
             "modalidade": raw_obra.get("modalidade") or raw_obra.get("tipoModalidade"),
-            "regiao": self._get_regiao(raw_obra.get("uf")),
+            "regiao": self._get_regiao(raw_obra.get("uf") or raw_obra.get("Uf") or raw_obra.get("siglaUf")),
             "ingestion_timestamp": datetime.now().isoformat(),
             "raw_payload": json.dumps(raw_obra, ensure_ascii=False),
         }
