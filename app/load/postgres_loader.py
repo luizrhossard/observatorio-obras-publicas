@@ -30,11 +30,14 @@ class PostgresLoader:
 
         with self.db.get_cursor() as cursor:
             for obra in normalized_data:
+                cursor.execute("SAVEPOINT load_obra")
                 try:
                     self._insert_raw(cursor, obra)
                     self._insert_trusted(cursor, obra)
+                    cursor.execute("RELEASE SAVEPOINT load_obra")
                     loaded_count += 1
                 except Exception as e:
+                    cursor.execute("ROLLBACK TO SAVEPOINT load_obra")
                     logger.warning(f"Error loading obra {obra.get('obra_id')}: {e}")
                     continue
 
@@ -73,7 +76,7 @@ class PostgresLoader:
                 regiao, ingestion_timestamp
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             ON CONFLICT (obra_id) DO UPDATE SET
                 nome = EXCLUDED.nome,

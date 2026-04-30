@@ -28,6 +28,11 @@ def execute_sql_file(cursor, file_path: Path) -> None:
             logger.debug(f"Executed: {statement[:50]}...")
         except Exception as e:
             logger.warning(f"Error executing statement (may be expected): {e}")
+            # psycopg2 marks the transaction as aborted after an error; rollback so we can continue.
+            try:
+                cursor.connection.rollback()
+            except Exception:
+                pass
 
 
 def init_database():

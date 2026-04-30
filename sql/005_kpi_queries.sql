@@ -16,7 +16,7 @@ SELECT
     l.regiao AS regiao,
     COUNT(o.obra_id) AS quantidade
 FROM analytics.fact_obras o
-JOIN analytics.dim_localidade l ON o.uf_key = l._localidade_id
+JOIN analytics.dim_localidade l ON o.uf_key = l.locality_id
 GROUP BY l.uf, l.regiao
 ORDER BY quantidade DESC;
 
@@ -36,7 +36,7 @@ SELECT
     COUNT(o.obra_id) AS total_obras,
     SUM(o.valor_previsto) AS valor_total
 FROM analytics.fact_obras o
-JOIN analytics.dim_localidade l ON o.regiao_key = l._localidade_id
+JOIN analytics.dim_localidade l ON o.regiao_key = l.locality_id
 GROUP BY l.regiao
 ORDER BY total_obras DESC;
 
@@ -84,7 +84,7 @@ SELECT
         2
     ) AS taxa_execucao_percent
 FROM analytics.fact_obras f
-JOIN analytics.dim_localidade l ON f.uf_key = l._localidade_id
+JOIN analytics.dim_localidade l ON f.uf_key = l.locality_id
 GROUP BY l.regiao
 ORDER BY taxa_execucao_percent DESC;
 
