@@ -1,5 +1,26 @@
 # Technical Notes and Assumptions
 
+## SQL Scripts Order
+
+| Script | Description |
+|--------|-------------|
+| `001_create_schemas.sql` | Cria schemas: raw, trusted, analytics |
+| `002_create_raw_tables.sql` | Tabelas para dados brutos da API |
+| `003_create_trusted_tables.sql` | Tabelas para dados normalizados |
+| `004_create_analytics_tables.sql` | Dimensões e fato para analytics |
+| `005_kpi_queries.sql` | Queries analíticas e KPIs |
+| `006_data_quality_checks.sql` | Validações de qualidade de dados |
+| `007_metabase_dashboard_views.sql` | Views otimizadas para dashboard Metabase |
+
+## Metabase Integration
+
+Para configurar o dashboard no Metabase:
+
+1. Execute `sql/007_metabase_dashboard_views.sql` no PostgreSQL
+2. Adicione o banco no Metabase apontando para o schema `analytics`
+3. Crie cards usando as views `v_metabase_*`
+4. Consulte o guia completo em `docs/metabase_integration.md`
+
 ## API Integration Notes
 
 ### Endpoint Assumptions
