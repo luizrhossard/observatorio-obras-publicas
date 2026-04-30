@@ -6,6 +6,7 @@ from dataclasses import dataclass
 @dataclass
 class Config:
     api_base_url: str
+    api_projects_endpoint: str
     api_timeout: int
     api_max_retries: int
     api_retry_delay: float
@@ -24,6 +25,7 @@ class Config:
             api_base_url=os.getenv(
                 "API_BASE_URL", "https://api.obrasgov.gestao.gov.br/obrasgov/api"
             ),
+            api_projects_endpoint=os.getenv("API_PROJECTS_ENDPOINT", "projeto-investimento"),
             api_timeout=int(os.getenv("API_TIMEOUT", "30")),
             api_max_retries=int(os.getenv("API_MAX_RETRIES", "3")),
             api_retry_delay=float(os.getenv("API_RETRY_DELAY", "1.0")),

@@ -5,8 +5,8 @@
 ### Endpoint Assumptions
 Based on the ObrasGov API documentation, the following endpoints are expected:
 
-- `GET /consultar` - List all obras with pagination
-- `GET /consultar/{id}` - Get single obra details
+- `GET /projeto-investimento` - List projects (paginated)
+- Filter by `idUnico` to narrow results (e.g. `?idUnico=...`)
 
 The exact JSON field names may vary. The normalizer includes multiple possible mappings for each field to handle variations:
 
