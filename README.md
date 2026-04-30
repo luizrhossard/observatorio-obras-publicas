@@ -63,6 +63,31 @@ docker-compose up app
 - `data/analytics/kpi_results_*.json` - KPIs
 - `data/reports/data_quality_report_*.json` - Data quality checks
 
+## Dashboard Metabase
+
+O projeto inclui views otimizadas para dashboard no Metabase com:
+
+- Cards: Total de obras, Valor previsto, Valor executado
+- Gráfico de pizza: Obras por situação
+- Gráfico de barras: Obras por região/UF
+- Gráfico de linha: Evolução mensal
+- Tabela: Lista detalhada de obras
+
+### Configurar Dashboard
+
+```bash
+# 1. Iniciar PostgreSQL
+docker-compose up -d postgres
+
+# 2. Aplicar views do Metabase
+docker exec -i obras_postgres psql -U obras_user -d obras_publicas \
+  -f /docker-entrypoint-initdb.d/007_metabase_dashboard_views.sql
+
+# 3. Conectar Metabase em localhost:5432 (schema: analytics)
+```
+
+Veja `DASHBOARD_METABASE.md` para o guia completo.
+
 ## For Recruiters
 
 This project demonstrates:
