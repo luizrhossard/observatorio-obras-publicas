@@ -34,7 +34,8 @@ python app/main.py
 
 ```bash
 # No PostgreSQL, execute:
-psql -U postgres -d observatorio_obras -f sql/007_metabase_dashboard_views.sql
+docker exec -i obras_postgres psql -U obras_user -d obras_publicas \
+  -f sql/007_metabase_dashboard_views.sql
 ```
 
 ### 3. Conectar o Metabase
@@ -43,11 +44,12 @@ psql -U postgres -d observatorio_obras -f sql/007_metabase_dashboard_views.sql
 2. Vá em **Settings** → **Admin** → **Databases** → **Add database**
 3. Configure:
    - Type: **PostgreSQL**
-   - Database: `observatorio_obras`
-   - Host: `localhost`
+   - Display name: Observatório de Obras
+   - Database: `obras_publicas`
+   - Host: `postgres` (Docker) ou `localhost` (local)
    - Port: `5432`
-   - Username: `postgres`
-   - Password: (sua senha)
+   - Username: `obras_user`
+   - Password: `obras_pass`
    - Schema: `analytics`
 
 ### 4. Criar o Dashboard
