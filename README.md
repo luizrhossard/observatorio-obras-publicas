@@ -22,6 +22,7 @@ ObrasGov API -> Ingestion -> Raw (JSON) -> Transform -> Trusted (PostgreSQL) -> 
 - PostgreSQL 15
 - Docker & Docker Compose
 - requests + psycopg2
+- Metabase (dashboard)
 
 ## Quick Start
 
@@ -30,8 +31,8 @@ ObrasGov API -> Ingestion -> Raw (JSON) -> Transform -> Trusted (PostgreSQL) -> 
 git clone https://github.com/luizrhossard/observatorio-obras-publicas.git
 cd observatorio-obras-publicas
 
-# Start PostgreSQL
-docker-compose up -d postgres
+# Start PostgreSQL and Metabase
+docker-compose up -d postgres metabase
 
 # Run pipeline
 docker-compose up app
@@ -76,14 +77,14 @@ O projeto inclui views otimizadas para dashboard no Metabase com:
 ### Configurar Dashboard
 
 ```bash
-# 1. Iniciar PostgreSQL
-docker-compose up -d postgres
+# 1. Iniciar PostgreSQL e Metabase
+docker-compose up -d postgres metabase
 
 # 2. Aplicar views do Metabase
 docker exec -i obras_postgres psql -U obras_user -d obras_publicas \
-  -f /docker-entrypoint-initdb.d/007_metabase_dashboard_views.sql
+  -f sql/007_metabase_dashboard_views.sql
 
-# 3. Conectar Metabase em localhost:5432 (schema: analytics)
+# 3. Acessar Metabase em http://localhost:3000
 ```
 
 Veja `DASHBOARD_METABASE.md` para o guia completo.
@@ -97,6 +98,7 @@ This project demonstrates:
 - Data quality practices
 - Docker containerization
 - Python modular code
+- BI dashboard integration (Metabase)
 
 ## License
 
